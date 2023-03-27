@@ -1,7 +1,7 @@
 /*
  * @Author: jiale_quan jiale_quan@ustc.edu
  * @Date: 2023-03-26 19:46:09
- * @LastEditTime: 2023-03-27 12:35:16
+ * @LastEditTime: 2023-03-27 13:59:40
  * @Description:
  * Copyright © jiale_quan, All Rights Reserved
  */
@@ -33,29 +33,30 @@ func createGroup() *jialecache.Group {
 		}))
 }
 
-func startCacheServer(addr string, addrs []string, jiale *jialecache.Group) {
+func startCacheServer(addr string, addrs []string, gee *jialecache.Group) {
 	peers := jialecache.NewHTTPPool(addr)
 	peers.Set(addrs...)
-	jiale.RegisterPeers(peers)
-	log.Println("jialecache is running at", addr)
+	gee.RegisterPeers(peers)
+	log.Println("geecache is running at", addr)
 	log.Fatal(http.ListenAndServe(addr[7:], peers))
 }
 
-func startAPIServer(apiAddr string, jiale *jialecache.Group) {
+func startAPIServer(apiAddr string, gee *jialecache.Group) {
 	http.Handle("/api", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			key := r.URL.Query().Get("key")
-			view, err := jiale.Get(key)
+			view, err := gee.Get(key)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			w.Header().Set("Content-Type", "application/octet-stream")
 			w.Write(view.ByteSlice())
-		},
-	))
+
+		}))
 	log.Println("fontend server is running at", apiAddr)
 	log.Fatal(http.ListenAndServe(apiAddr[7:], nil))
+
 }
 
 func main() {
